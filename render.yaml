@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: auragrid-uk
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: DEBUG
+        value: "false"
