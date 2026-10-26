@@ -7,8 +7,9 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com)
 [![Coverage](https://img.shields.io/badge/Tests-25%20Passing-brightgreen.svg)]()
 
-> **Production Demo Deployment**: [https://auragrid-uk.vercel.app](https://auragrid-uk.vercel.app) *(or deployed Heroku/Render container)*  
-> **API Documentation (Swagger UI)**: `http://localhost:8000/docs`
+> **Live Production Deployment**: [https://krtnsh.onrender.com](https://krtnsh.onrender.com)  
+> **API Documentation (Swagger UI)**: [https://krtnsh.onrender.com/docs](https://krtnsh.onrender.com/docs)  
+> **Unlisted Video Demo (10 min)**: [YouTube Video Demo Link](https://www.youtube.com/) *(Add your unlisted YouTube URL here)*
 
 ---
 
@@ -35,26 +36,26 @@ To reliably meet consumer demand at lowest cost, a UK energy utility must purcha
 
 ```mermaid
 flowchart TD
-    subgraph Upstream [Official Elexon BMRS Data Streams]
-        F_STREAM[FUELHH Stream\nActual Wind Generation\n30-min Settlement Cadence\nfuelType=WIND]
-        W_STREAM[WINDFOR Stream\nNational Wind Forecasts\nMulti-Vintage Hourly Cadence]
+    subgraph Upstream ["Official Elexon BMRS Data Streams"]
+        F_STREAM["FUELHH Stream<br/>Actual Wind Generation<br/>30-min Settlement Cadence<br/>fuelType=WIND"]
+        W_STREAM["WINDFOR Stream<br/>National Wind Forecasts<br/>Multi-Vintage Hourly Cadence"]
     end
 
-    subgraph Backend [Python FastAPI Analytics Engine :8000]
-        Ingest[Elexon Ingestion Service\nHTTPX Async Streamer]
-        DB[(SQLite WAL Cache\nIndexed on startTime, publishTime\nSub-10ms Queries)]
-        Analytics[AnalyticsEngine\n• Strict As-Of Gate Closure (D-1 11:00 UTC)\n• 30-min Block Cadence Alignment\n• Residual Statistics & Quantiles\n• Thermal Procurement Simulator]
-        API[FastAPI Endpoints\n/health\n/api/overview\n/api/forecasts\n/api/accuracy\n/api/simulator\n/api/vintages/evolution\n/api/data-quality\n/api/sync]
+    subgraph Backend ["Python FastAPI Analytics Engine :8000"]
+        Ingest["Elexon Ingestion Service<br/>HTTPX Async Streamer"]
+        DB[("SQLite WAL Cache<br/>Indexed on startTime, publishTime<br/>Sub-10ms Queries")]
+        Analytics["AnalyticsEngine<br/>• Strict As-Of Gate Closure D-1 11:00 UTC<br/>• 30-min Block Cadence Alignment<br/>• Residual Statistics and Quantiles<br/>• Thermal Procurement Simulator"]
+        API["FastAPI Endpoints<br/>/health<br/>/api/overview<br/>/api/forecasts<br/>/api/accuracy<br/>/api/simulator<br/>/api/vintages/evolution<br/>/api/data-quality<br/>/api/sync"]
     end
 
-    subgraph Frontend [React 19 + TypeScript + Vite + Tailwind CSS]
-        Shell[App Shell with Date Range, Gate Closure & Cadence Controls]
-        P1[1. Executive Overview Dashboard]
-        P2[2. Day-Ahead Procurement Simulator]
-        P3[3. Forecast Explorer & Vintage Fan Chart]
-        P4[4. Statistical Accuracy Analytics]
-        P5[5. Data Quality, Audit & Lineage]
-        P6[6. Methodology & Video Pitch Guide]
+    subgraph Frontend ["React 19 + TypeScript + Vite + Tailwind CSS"]
+        Shell["App Shell with Date Range, Gate Closure and Cadence Controls"]
+        P1["1. Executive Overview Dashboard"]
+        P2["2. Day-Ahead Procurement Simulator"]
+        P3["3. Forecast Explorer and Vintage Fan Chart"]
+        P4["4. Statistical Accuracy Analytics"]
+        P5["5. Data Quality, Audit and Lineage"]
+        P6["6. Methodology and Video Pitch Guide"]
     end
 
     Upstream --> Ingest
