@@ -7,7 +7,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com)
 [![Coverage](https://img.shields.io/badge/Tests-25%20Passing-brightgreen.svg)]()
 
-> **Production Demo Deployment**: [https://auragrid-uk.vercel.app](https://auragrid-uk.vercel.app) *(or deployed Heroku/Render container)*  
+> **Production Demo Deployment**: [https://krtnsh.onrender.com](https://krtnsh.onrender.com/) *(or deployed Heroku/Render container)*  
 > **API Documentation (Swagger UI)**: `http://localhost:8000/docs`
 
 ---
