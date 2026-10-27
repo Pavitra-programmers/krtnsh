@@ -47,7 +47,7 @@ export const MethodologyPage: React.FC = () => {
               <strong className="text-white">2. Executive Overview (1.5 min):</strong> Showcase the Executive Dashboard. Walk through January 2026 findings: National Grid ESO overpredicted wind by an average of <strong>+1,840 MW</strong> (MAE: 2,126 MW). Highlight the commercial danger: unadjusted forecasts lead to severe under-procurement and costly Balancing Mechanism cashouts.
             </div>
             <div>
-              <strong className="text-white">3. Decision Simulator Demonstration (2 mins):</strong> Demonstrate the Day-Ahead Procurement Simulator. Switch between <em>P50 Point Forecast</em> (which leaves large short exposures) and <em>P90 Conservative Hedging</em> (which offsets downside wind risk, ensuring physical stability).
+              <strong className="text-white">3. Decision Simulator Demonstration (2 mins):</strong> Demonstrate the Day-Ahead Procurement Simulator for Jan 15. Show how the <em>Naive P50 Strategy</em> leaves the utility short by <strong>26,646 MWh</strong> with <strong>£3.86 million</strong> in penalties (point to the red bars on the imbalance chart). Then switch to <em>De-biased P50</em>: net costs drop by nearly <strong>£1 million</strong> (£40.67M vs £41.65M). Finally, switch to <em>P80 / P90 Hedge</em>: short imbalance drops to <strong>0 MWh (£0 penalties)</strong>, completely eliminating cashout risk.
             </div>
             <div>
               <strong className="text-white">4. Commercial Impact & Close (0.5 min):</strong> Conclude on financial savings: reducing imbalance volatility saves millions in winter cashout penalties.
