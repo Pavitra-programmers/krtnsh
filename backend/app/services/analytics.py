@@ -378,13 +378,24 @@ class AnalyticsEngine:
         month_df = self.get_aligned_data(start_date="2026-01-01", end_date="2026-01-31", cutoff_time=cutoff_time)
         month_metrics = self.calculate_metrics(month_df)
 
+        q50 = float(month_metrics["p50_error"])  # 1666.5 MW median overforecast
+        q80 = float(month_metrics["p80_error"])  # 3401.0 MW 80th pct overforecast
+        q90 = float(month_metrics["p90_error"])  # 4346.9 MW 90th pct overforecast
+
+        # Downside risk offset protects against actual wind being lower than forecast:
+        # Subtracting overforecasting quantile from forecast increases thermal day-ahead hedge
         offset = 0.0
-        if strategy == "p80":
-            offset = month_metrics["p20_error"]
+        if strategy == "p50_debiased" or strategy == "debiased":
+            offset = -q50
+        elif strategy == "p80":
+            offset = -q80
         elif strategy == "p90":
-            offset = month_metrics["p10_error"]
+            offset = -q90
         elif strategy == "p10":
-            offset = month_metrics["p90_error"]
+            offset = q50  # aggressive: assumes wind exceeds expectation
+        else:
+            # "p50" / "naive" point forecast baseline
+            offset = 0.0
         
         base_curve = [
             0.58, 0.56, 0.55, 0.54, 0.54, 0.55, 0.57, 0.61,

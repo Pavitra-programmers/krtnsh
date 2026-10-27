@@ -3,6 +3,7 @@ import {
   Area,
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -10,6 +11,7 @@ import {
   ResponsiveContainer,
   Line,
   ComposedChart,
+  ReferenceLine,
 } from "recharts";
 import { Download } from "lucide-react";
 import { MetricCard } from "../components/MetricCard";
@@ -26,7 +28,7 @@ export const SimulatorPage: React.FC<SimulatorPageProps> = ({
   cutoffTime,
 }) => {
   const [selectedDate, setSelectedDate] = useState<string>(initialDate);
-  const [strategy, setStrategy] = useState<"p50" | "p80" | "p90" | "p10">("p50");
+  const [strategy, setStrategy] = useState<string>("p50");
   const [demandPeak, setDemandPeak] = useState<number>(38000);
   const [simData, setSimData] = useState<SimulatorResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -100,6 +102,10 @@ export const SimulatorPage: React.FC<SimulatorPageProps> = ({
     document.body.removeChild(link);
   };
 
+  // Count short vs long periods
+  const shortPeriodsCount = simData?.schedule.filter((s) => s.imbalance_mw < 0).length || 0;
+  const longPeriodsCount = simData?.schedule.filter((s) => s.imbalance_mw >= 0).length || 0;
+
   return (
     <div className="space-y-6">
       {/* Control Console */}
@@ -148,19 +154,31 @@ export const SimulatorPage: React.FC<SimulatorPageProps> = ({
           {/* Risk Hedging Strategy Pills */}
           <div>
             <label className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider block mb-2.5">
-              Wind Hedging Policy (Empirical Quantile Offset)
+              Wind Hedging Policy (Error Quantile Offset)
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 onClick={() => setStrategy("p50")}
                 className={`p-3 rounded-xl border text-left transition-all ${
                   strategy === "p50"
+                    ? "bg-[#181818] border-[#FF3B30] text-white shadow-[0_0_15px_rgba(255,59,48,0.15)]"
+                    : "bg-[#141414] border-white/[0.07] hover:border-white/20 text-neutral-400"
+                }`}
+              >
+                <div className="text-xs font-bold text-white">Naive P50</div>
+                <div className="text-[10px] text-[#FF6961] mt-0.5">Unhedged Base</div>
+              </button>
+
+              <button
+                onClick={() => setStrategy("p50_debiased")}
+                className={`p-3 rounded-xl border text-left transition-all ${
+                  strategy === "p50_debiased"
                     ? "bg-[#181818] border-[#00E575] text-white shadow-[0_0_15px_rgba(0,229,117,0.15)]"
                     : "bg-[#141414] border-white/[0.07] hover:border-white/20 text-neutral-400"
                 }`}
               >
-                <div className="text-xs font-bold text-white">P50 Base</div>
-                <div className="text-[10px] text-neutral-500 mt-0.5">Point Forecast</div>
+                <div className="text-xs font-bold text-white">De-biased P50</div>
+                <div className="text-[10px] text-[#00E575] mt-0.5">Saves ~£1M Net</div>
               </button>
 
               <button
@@ -172,7 +190,7 @@ export const SimulatorPage: React.FC<SimulatorPageProps> = ({
                 }`}
               >
                 <div className="text-xs font-bold text-white">P80 Hedge</div>
-                <div className="text-[10px] text-neutral-500 mt-0.5">80% Protected</div>
+                <div className="text-[10px] text-[#00E575] mt-0.5">0 MWh Short</div>
               </button>
 
               <button
@@ -184,19 +202,7 @@ export const SimulatorPage: React.FC<SimulatorPageProps> = ({
                 }`}
               >
                 <div className="text-xs font-bold text-white">P90 Max</div>
-                <div className="text-[10px] text-neutral-500 mt-0.5">90% Protected</div>
-              </button>
-
-              <button
-                onClick={() => setStrategy("p10")}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  strategy === "p10"
-                    ? "bg-[#181818] border-[#00E575] text-white shadow-[0_0_15px_rgba(0,229,117,0.15)]"
-                    : "bg-[#141414] border-white/[0.07] hover:border-white/20 text-neutral-400"
-                }`}
-              >
-                <div className="text-xs font-bold text-white">P10 Low</div>
-                <div className="text-[10px] text-neutral-500 mt-0.5">Aggressive</div>
+                <div className="text-[10px] text-[#00E575] mt-0.5">Zero Imbalance</div>
               </button>
             </div>
           </div>
@@ -248,7 +254,7 @@ export const SimulatorPage: React.FC<SimulatorPageProps> = ({
               title="Thermal Procured"
               value={Math.round(simData.summary.total_thermal_procured_mwh).toLocaleString()}
               unit="MWh"
-              subtitle={`£${(simData.summary.estimated_thermal_cost_gbp / 1e6).toFixed(2)}M at £85`}
+              subtitle={`£${(simData.summary.estimated_thermal_cost_gbp / 1e6).toFixed(2)}M at £85/MWh`}
               badge="Day-Ahead"
               badgeColor="neutral"
             />
@@ -256,9 +262,9 @@ export const SimulatorPage: React.FC<SimulatorPageProps> = ({
               title="Wind Procured"
               value={Math.round(simData.summary.total_wind_procured_mwh).toLocaleString()}
               unit="MWh"
-              subtitle={`Offset: ${simData.strategy_offset_mw > 0 ? "+" : ""}${simData.strategy_offset_mw} MW`}
+              subtitle={`Offset: ${simData.strategy_offset_mw > 0 ? "+" : ""}${simData.strategy_offset_mw.toLocaleString()} MW`}
               badge={strategy.toUpperCase()}
-              badgeColor="green"
+              badgeColor={strategy === "p50" ? "red" : "green"}
             />
             <MetricCard
               title="Actual Wind"
@@ -273,7 +279,7 @@ export const SimulatorPage: React.FC<SimulatorPageProps> = ({
               value={Math.round(simData.summary.short_imbalance_mwh).toLocaleString()}
               unit="MWh"
               subtitle={`Penalty: £${(simData.summary.estimated_imbalance_penalty_gbp / 1e6).toFixed(2)}M`}
-              badge={simData.summary.short_imbalance_mwh > 0 ? "Cashout Risk" : "Balanced"}
+              badge={simData.summary.short_imbalance_mwh > 0 ? "Penalty Exposure" : "0 MWh Short"}
               badgeColor={simData.summary.short_imbalance_mwh > 0 ? "red" : "green"}
             />
             <MetricCard
@@ -367,45 +373,66 @@ export const SimulatorPage: React.FC<SimulatorPageProps> = ({
             </div>
           </div>
 
-          {/* Physical Imbalance Outturn */}
+          {/* Physical Imbalance Outturn (Fixed conditional coloring with Cell) */}
           <div className="matte-card p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
               <div>
                 <h3 className="text-sm font-bold text-white tracking-tight">
                   Physical Imbalance Volume (Actual Wind - Procured Wind)
                 </h3>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  Red = Short volume cashout penalties; Green = Long spill credits
+                  Half-hourly volume shortfall vs surplus against day-ahead contracted schedule
                 </p>
+              </div>
+
+              {/* Status Breakdown Pills */}
+              <div className="flex items-center space-x-3 text-xs font-mono">
+                <span className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#FF3B30]/10 border border-[#FF3B30]/30 text-[#FF6961]">
+                  <span className="w-2 h-2 rounded-full bg-[#FF3B30]" />
+                  <span>{shortPeriodsCount} Short Periods (Cashout Risk)</span>
+                </span>
+                <span className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#00E575]/10 border border-[#00E575]/30 text-[#00E575]">
+                  <span className="w-2 h-2 rounded-full bg-[#00E575]" />
+                  <span>{longPeriodsCount} Long Periods (Spill Credit)</span>
+                </span>
               </div>
             </div>
 
-            <div className="h-44 w-full">
+            <div className="h-52 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={simData.schedule} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                <BarChart data={simData.schedule} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
                   <XAxis dataKey="time_label" stroke="#52525B" tick={{ fontSize: 9 }} />
                   <YAxis stroke="#52525B" tick={{ fontSize: 9 }} unit=" MW" />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#141414",
-                      borderColor: "rgba(255, 255, 255, 0.12)",
+                      borderColor: "rgba(255, 255, 255, 0.15)",
                       borderRadius: "0.75rem",
                       fontSize: "12px",
                       boxShadow: "0 8px 30px rgba(0, 0, 0, 0.8)",
                     }}
-                    formatter={(val: any) => [`${Number(val).toLocaleString()} MW`]}
-                  />
-                  <Bar
-                    dataKey="imbalance_mw"
-                    name="Net Imbalance"
-                    fill="#00E575"
-                    shape={(props: any) => {
-                      const { x, y, width, height, value } = props;
-                      const fill = value < 0 ? "#FF3B30" : "#00E575";
-                      return <rect x={x} y={y} width={width} height={height} fill={fill} rx={2} />;
+                    formatter={(val: any) => {
+                      const num = Number(val);
+                      if (num < 0) {
+                        const penalty = Math.abs(num) * 0.5 * 145.0;
+                        return [`${num.toLocaleString()} MW (Penalty: £${Math.round(penalty).toLocaleString()})`, "Short Imbalance"];
+                      } else {
+                        const credit = num * 0.5 * 45.0;
+                        return [`+${num.toLocaleString()} MW (Credit: £${Math.round(credit).toLocaleString()})`, "Long Spill"];
+                      }
                     }}
+                    labelFormatter={(label) => `Settlement Time: ${label} UTC`}
                   />
+                  <ReferenceLine y={0} stroke="rgba(255, 255, 255, 0.3)" strokeWidth={1.5} />
+                  <Bar dataKey="imbalance_mw" name="Net Imbalance" radius={[2, 2, 2, 2]}>
+                    {simData.schedule.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.imbalance_mw < 0 ? "#FF3B30" : "#00E575"}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

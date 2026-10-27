@@ -140,7 +140,7 @@ export interface SimulatorScheduleItem {
 export interface SimulatorResponse {
   target_date: string;
   cutoff_time: string;
-  strategy: "p50" | "p80" | "p90" | "p10";
+  strategy: "p50" | "p50_debiased" | "p80" | "p90" | "p10" | string;
   strategy_offset_mw: number;
   demand_peak_mw: number;
   summary: {
